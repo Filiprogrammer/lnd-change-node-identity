@@ -1,0 +1,13 @@
+diff --git a/keychain/derivation.go b/keychain/derivation.go
+index 21996c650..89862edd6 100644
+--- a/keychain/derivation.go
++++ b/keychain/derivation.go
+@@ -100,7 +100,7 @@ const (
+ 	// "identity" within the network. Peers will need our latest node key
+ 	// in order to establish a transport session with us on the Lightning
+ 	// p2p level (BOLT-0008).
+-	KeyFamilyNodeKey KeyFamily = 6
++	KeyFamilyNodeKey KeyFamily = 16
+ 
+ 	// KeyFamilyBaseEncryption is the family of keys that will be used to
+ 	// derive keys that we use to encrypt and decrypt any general blob data

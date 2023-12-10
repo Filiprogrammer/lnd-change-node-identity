@@ -1,0 +1,29 @@
+diff --git a/lnrpc/invoicesrpc/addinvoice.go b/lnrpc/invoicesrpc/addinvoice.go
+index 00e88ecc1..510b0818c 100644
+--- a/lnrpc/invoicesrpc/addinvoice.go
++++ b/lnrpc/invoicesrpc/addinvoice.go
+@@ -484,12 +484,6 @@ func AddInvoice(ctx context.Context, cfg *AddInvoiceConfig,
+ func chanCanBeHopHint(channel *HopHintInfo, cfg *SelectHopHintsCfg) (
+ 	*channeldb.ChannelEdgePolicy, bool) {
+ 
+-	// Since we're only interested in our private channels, we'll skip
+-	// public ones.
+-	if channel.IsPublic {
+-		return nil, false
+-	}
+-
+ 	// Make sure the channel is active.
+ 	if !channel.IsActive {
+ 		log.Debugf("Skipping channel %v due to not "+
+@@ -694,10 +688,7 @@ func getPotentialHints(cfg *SelectHopHintsCfg) ([]*channeldb.OpenChannel,
+ 
+ 	privateChannels := make([]*channeldb.OpenChannel, 0, len(openChannels))
+ 	for _, oc := range openChannels {
+-		isPublic := oc.ChannelFlags&lnwire.FFAnnounceChannel != 0
+-		if !isPublic {
+-			privateChannels = append(privateChannels, oc)
+-		}
++		privateChannels = append(privateChannels, oc)
+ 	}
+ 
+ 	// Sort the channels in descending remote balance.

@@ -1,0 +1,45 @@
+From 82bac90b070d607152bc396c593b5501333c08fa Mon Sep 17 00:00:00 2001
+From: Olaoluwa Osuntokun <laolu32@gmail.com>
+Date: Tue, 29 Aug 2023 13:57:32 -0700
+Subject: [PATCH] peer: eliminate circular waiting by calling maybeSendNodeAnn
+ async
+
+In this commit, we attempt to fix circular waiting scenario introduced
+inadvertently when [fixing a race condition
+scenario](https://github.com/lightningnetwork/lnd/pull/7856). With that
+PR, we added a new channel that would block `Disconnect`, and
+`WaitForDisconnect` to ensure that only until the `Start` method has
+finished would those calls be allowed to succeed.
+
+The issue is that if the server is trying to disconnect a peer due to a
+concurrent connection, but `Start` is blocked on `maybeSendNodeAnn`,
+which then wants to grab the main server mutex, then `Start` can never
+exit, which causes `startReady` to never be closed, which then causes
+the server to be blocked.
+
+This PR attempts to fix the issue by calling `maybeSendNodeAnn` in a
+goroutine, so it can grab the server mutex and not block the `Start`
+method.
+
+Fixes https://github.com/lightningnetwork/lnd/issues/7924
+
+Fixes https://github.com/lightningnetwork/lnd/issues/7928
+
+Fixes https://github.com/lightningnetwork/lnd/issues/7866
+---
+ peer/brontide.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/peer/brontide.go b/peer/brontide.go
+index 70dc477bd16..2c8635f9f4d 100644
+--- a/peer/brontide.go
++++ b/peer/brontide.go
+@@ -672,7 +672,7 @@ func (p *Brontide) Start() error {
+ 	//
+ 	// TODO(wilmer): Remove this once we're able to query for node
+ 	// announcements through their timestamps.
+-	p.maybeSendNodeAnn(activeChans)
++	go p.maybeSendNodeAnn(activeChans)
+ 
+ 	return nil
+ }
